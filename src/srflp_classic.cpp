@@ -64,9 +64,9 @@ void develop(unordered_map<bitset<N>,shared_ptr<Node> > *graph, shared_ptr<Front
         for (unordered_map<bitset<N>,shared_ptr<Node> >::iterator it=graph[current_layer].begin(); it!=graph[current_layer].end(); ++it) {
             shared_ptr<Node> &parent = it->second;
             if (parent->ub > current_lb) {
-                for (int val=0; val<problem->n; val++) if (parent->state->free[val]) {
+                for (int val=0; val<problem->n; val++) if (parent->state->free[val] && problem->feasible(parent->state, current_layer, val)) {
                     shared_ptr<State> child = nullptr;
-                    int cost = problem->successor(parent->state, val, child);
+                    int cost = problem->successor(parent->state, current_layer, val, child);
 
                     shared_ptr<Arc> arc = make_shared<Arc>();
                     arc->to = parent;
@@ -270,10 +270,11 @@ void solve() {
 
 int main(int argc, char const *argv[]) {
     if (argc == 1 || (argc == 2 && strcmp(argv[1],"--help") == 0)) {
-        cout << "Usage: ./PROGRAM filename [--width width]     // maximum width of the DDs\n"
-             << "                          [--time maxtime]    // maximum time (seconds) for the algorithm\n"
-             << "                          [--threads threads] // number of threads used\n"
-             << "                          [--minlp]           // use MinLP for comparison before restriction\n";
+        cout << "Usage: ./PROGRAM filename [--width width]           // maximum width of the DDs\n"
+             << "                          [--time maxtime]          // maximum time (seconds) for the algorithm\n"
+             << "                          [--threads threads]       // number of threads used\n"
+             << "                          [--minlp]                 // use MinLP for comparison before restriction\n"
+             << "                          [--constraints filename]  // add constraints to the problem\n";
         return 0;
     }
 
@@ -294,6 +295,7 @@ int main(int argc, char const *argv[]) {
         else if (strcmp(argv[i],"--time") == 0) max_time = stoi(argv[i+1]);
         else if (strcmp(argv[i],"--threads") == 0) n_threads = stoi(argv[i+1]);
         else if (strcmp(argv[i],"--minlp") == 0) layer_cmp = 0;
+        else if (strcmp(argv[i],"--constraints") == 0) problem->add_constraints(argv[i+1]);
     }
 
     cout << "Starting search with width=" << max_width

@@ -6,7 +6,10 @@ Problem::Problem(string filename) {
         return;
     }
 
-    for (int i=0; i<n; i++) root_bits[i] = true;
+    for (int i=0; i<n; i++) {
+        root_bits[i] = true;
+        dep[i] = prev[i] = next[i] = -1;
+    }
 
     // precompute lists for estimate
     for (int i=0; i<n; i++) {
@@ -64,8 +67,37 @@ bool Problem::read_file(string filename) {
         file.close();
         return true;
     } else {
-        cout << "Error opening file.\n";
+        cout << "Error opening instance file.\n";
         return false;
+    }
+}
+
+void Problem::add_constraints(string filename) {
+    string line;
+    ifstream file(filename);
+    if (file.is_open()) {
+        int p, o, r, a, b;
+        file >> p >> o >> r;
+
+        for (int i=0; i<p; i++) {
+            file >> a >> b;
+            dep[b] = a;
+        }
+
+        for (int i=0; i<o; i++) {
+            file >> a >> b;
+            pred[b].set(a);
+        }
+
+        for (int i=0; i<r; i++) {
+            file >> a >> b;
+            next[a] = b;
+            prev[b] = a;
+        }
+
+        file.close();
+    } else {
+        cout << "Error opening constraints file.\n";
     }
 }
 
@@ -77,19 +109,44 @@ double Problem::root_value() {
     return offset;
 }
 
-int Problem::successor(shared_ptr<State> &parent, int i, shared_ptr<State> &child) {
+bool Problem::feasible(shared_ptr<State> &parent, int var, int val) {
+    // check position constraint
+    if (dep[var] != -1 && dep[var] != val) { // another dep must be placed here
+        return false;
+    }
+
+    // check ordering constraint
+    if ((pred[val] & ~(parent->free)) != pred[val]) { // not all predecessors are set
+        return false;
+    }
+
+    // check relation constraint
+    if (prev[val] != -1 && parent->free[prev[val]]) { // previous is not set yet
+        return false;
+    }
+
+    if (prev[val] == -1) { // check if another dep should be placed now
+        for (int i=0; i<n; i++) if (next[i] != -1 && !parent->free[i] && parent->free[next[i]]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+int Problem::successor(shared_ptr<State> &parent, int var, int val, shared_ptr<State> &child) {
     child = make_shared<State>();
     child->free |= parent->free;
-    child->free[i] = false;
-    child->cuts[i] = 0;
+    child->free[val] = false;
+    child->cuts[val] = 0;
 
     int cut = 0;
     for (int j=0; j<n; j++) if (child->free[j]) {
         cut += parent->cuts[j];
-        child->cuts[j] = parent->cuts[j] + c[i][j];
+        child->cuts[j] = parent->cuts[j] + c[val][j];
     }
 
-    return - l[i] * cut;
+    return - l[val] * cut;
 }
 
 int Problem::combined_ub(int *state_cuts, bitset<N> &free, int n_free) {
