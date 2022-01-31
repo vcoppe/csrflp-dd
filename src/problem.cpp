@@ -149,7 +149,12 @@ int Problem::successor(shared_ptr<State> &parent, int var, int val, shared_ptr<S
     return - l[val] * cut;
 }
 
+
 int Problem::combined_ub(int *state_cuts, bitset<N> &free, int n_free) {
+    return ub1(state_cuts, free, n_free);
+}
+
+int Problem::ub1(int *state_cuts, bitset<N> &free, int n_free) {
     vector<pair<double, int> > order;
 
     int edge_lb = 0, cut_lb = 0, cumul_l = 0, edge_idx = 0, length_idx = 0;
@@ -177,5 +182,58 @@ int Problem::combined_ub(int *state_cuts, bitset<N> &free, int n_free) {
         cumul_l += l[j];
     }
 
-    return - edge_lb - cut_lb;
+    return - (cut_lb + edge_lb);
+}
+
+int Problem::ub2(int *state_cuts, bitset<N> &free, int n_free) {
+    vector<pair<double, int> > order;
+
+    int edge_lb = 0, cut_lb = 0, cumul_l = 0, edge_idx = 0, length_idx = 0;
+    for (int i=0; i<n_free; i++) {
+
+        while (!free[lengths[length_idx].second]) length_idx++;
+        cumul_l += lengths[length_idx].first;
+
+        order.emplace_back(- ((double) state_cuts[lengths[length_idx].second]) / lengths[length_idx].first, lengths[length_idx].second);
+
+        length_idx++;
+    }
+
+    sort(order.begin(), order.end());
+
+    cumul_l = 0;
+    for (int i=0; i<order.size(); i++) {
+        int j = order[i].second;
+        cut_lb += cumul_l * state_cuts[j];
+        cumul_l += l[j];
+    }
+
+    double degree_lb = 0;
+    for (int i=0; i<n; i++) if (free[i]) {
+        order.clear();
+        for (int j=0; j<n; j++) if (i != j && free[j]) {
+            order.emplace_back(- ((double) c[i][j]) / l[j], j);
+        }
+
+        if (order.size() >= 3) {
+            sort(order.begin(), order.end());
+
+            int cumul_l_a = 0, cumul_l_b = 0;
+            for (int k=0; k<order.size()-2; k++) {
+                int j = order[k].second;
+                degree_lb += cumul_l_a * c[i][j];
+                cumul_l_a += l[j];
+
+                if (cumul_l_a > cumul_l_b) swap(cumul_l_a, cumul_l_b);
+            }
+
+            int j1 = order[order.size()-2].second, j2 = order[order.size()-1].second;
+            if (c[i][j1] < c[i][j2]) swap(j1, j2);
+
+            degree_lb += cumul_l_a * c[i][j1] + cumul_l_b * c[i][j2];
+        }
+    }
+    degree_lb = ceil(0.5 * degree_lb);
+
+    return - (cut_lb + max(edge_lb, (int) degree_lb));
 }

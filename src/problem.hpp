@@ -37,6 +37,8 @@ class Problem {
 
         // compute an upper bound based on edges and cuts given cut values and a set of vertices
         int combined_ub(int *state_cuts, bitset<N> &free, int n_free);
+        int ub1(int *state_cuts, bitset<N> &free, int n_free);
+        int ub2(int *state_cuts, bitset<N> &free, int n_free);
     private:
         bool read_file(string filename);
         double root_value();
