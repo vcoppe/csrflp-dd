@@ -123,7 +123,7 @@ void develop(unordered_map<bitset<N>,shared_ptr<Node> > *graph, shared_ptr<Front
         }
 
         if (must_squash) {
-            int to_remove = graph[current_layer+1].size() - (root->layer ? max_width : 1000);
+            int to_remove = graph[current_layer+1].size() - max_width;
             if (to_remove > 0) {
                 if (layer_cmp == 0) sort(layer_nodes.begin(), layer_nodes.begin()+node_idx, LayerNodeLPComparator());
                 else sort(layer_nodes.begin(), layer_nodes.begin()+node_idx, LayerNodeUBComparator());

@@ -140,7 +140,7 @@ void develop(unordered_map<bitset<N>,shared_ptr<Node> > *graph, shared_ptr<Front
 
         if (use_symmetry && problem->n-(current_layer+1) == lowest_active_layer) break;
         else if (must_squash) {
-            int to_remove = graph[current_layer+1].size() - (lowest_active_layer ? max_width : 1000);
+            int to_remove = graph[current_layer+1].size() - max_width;
             if (to_remove > 0) {
                 if (layer_cmp == 0) sort(layer_nodes.begin(), layer_nodes.begin()+node_idx, LayerNodeLPComparator());
                 else sort(layer_nodes.begin(), layer_nodes.begin()+node_idx, LayerNodeUBComparator());
@@ -257,21 +257,26 @@ void task() {
     while (true) {
         global_mutex.lock();
 
-        if (must_stop() || lowest_active_layer == (problem->n+1)/2) { // time cutoff or end of algorithm
+        if (must_stop() || lowest_active_layer == problem->n || (use_symmetry && lowest_active_layer == (problem->n+1)/2)) { // time cutoff or end of algorithm
             global_mutex.unlock();
             break;
         } else if (frontier[lowest_active_layer].empty()) { // no more nodes in this layer
             if (ongoing.empty()) { // current layer fully developed
-                if (next_active_layer == (problem->n+1)/2) { // layers ready to meet in the middle
-                    finalize_middle();
-                    mem[lowest_active_layer].clear();
-                    mem[next_active_layer].clear();
-                    lowest_active_layer = (problem->n+1)/2;
+                if (use_symmetry) {
+                    if (next_active_layer == (problem->n+1)/2) { // layers ready to meet in the middle
+                        finalize_middle();
+                        mem[lowest_active_layer].clear();
+                        mem[next_active_layer].clear();
+                        lowest_active_layer = (problem->n+1)/2;
+                    } else {
+                        mem[lowest_active_layer].clear();
+                        lowest_active_layer = next_active_layer;
+                        if (lowest_active_layer == problem->n/2 && problem->n%2 == 1) next_active_layer = (problem->n+1)/2;
+                        else next_active_layer = min(lowest_active_layer+step, problem->n/2);
+                    }
                 } else {
-                    mem[lowest_active_layer].clear();
                     lowest_active_layer = next_active_layer;
-                    if (lowest_active_layer == problem->n/2 && problem->n%2 == 1) next_active_layer = (problem->n+1)/2;
-                    else next_active_layer = min(lowest_active_layer+step, problem->n/2);
+                    next_active_layer = min(lowest_active_layer+step, problem->n);
                 }
                 log();
             }
@@ -339,7 +344,7 @@ void solve() {
 
     frontier_size++;
 
-    next_active_layer = min(lowest_active_layer+step, problem->n/2);
+    next_active_layer = min(lowest_active_layer+step, use_symmetry ? problem->n/2 : problem->n);
 
     vector<thread> threads;
     for (int i=0; i<n_threads; i++) threads.emplace_back(task);
