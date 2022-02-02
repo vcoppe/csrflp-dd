@@ -8,7 +8,7 @@ Problem::Problem(string filename) {
 
     for (int i=0; i<n; i++) {
         root_bits[i] = true;
-        dep[i] = prev[i] = next[i] = -1;
+        pos[i] = dep[i] = prev[i] = next[i] = -1;
     }
 
     // precompute lists for estimate
@@ -81,6 +81,7 @@ void Problem::add_constraints(string filename) {
 
         for (int i=0; i<p; i++) {
             file >> a >> b;
+            pos[a] = b;
             dep[b] = a;
         }
 
@@ -111,7 +112,7 @@ double Problem::root_value() {
 
 bool Problem::feasible(shared_ptr<State> &parent, int var, int val) {
     // check position constraint
-    if (dep[var] != -1 && dep[var] != val) { // another dep must be placed here
+    if ((pos[val] != -1 && pos[val] != var) || (dep[var] != -1 && dep[var] != val)) { // dep must be placed somewhere else or another dep must be placed here
         return false;
     }
 

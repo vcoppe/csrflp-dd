@@ -17,7 +17,7 @@ class Problem {
         int n, *l, **c;
 
         // constraints
-        int dep[N], prev[N], next[N];
+        int pos[N], dep[N], prev[N], next[N];
         bitset<N> pred[N];
 
         // pre-computed lists for rough upper bound

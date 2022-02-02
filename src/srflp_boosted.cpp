@@ -367,7 +367,7 @@ int main(int argc, char const *argv[]) {
     max_width = problem->n;
     max_time = MAX_VALUE;
     n_threads = thread::hardware_concurrency();
-    use_symmetry = 1;
+    use_symmetry = 0;
     layer_cmp = 1;
     step = 1;
 
@@ -375,7 +375,7 @@ int main(int argc, char const *argv[]) {
         if (strcmp(argv[i],"--width") == 0) max_width = stoi(argv[i+1]);
         else if (strcmp(argv[i],"--time") == 0) max_time = stoi(argv[i+1]);
         else if (strcmp(argv[i],"--threads") == 0) n_threads = stoi(argv[i+1]);
-        else if (strcmp(argv[i],"--symmetry-off") == 0) use_symmetry = 0;
+        else if (strcmp(argv[i],"--symmetry-on") == 0) use_symmetry = 1;
         else if (strcmp(argv[i],"--minlp") == 0) layer_cmp = 0;
         else if (strcmp(argv[i],"--constraints") == 0) problem->add_constraints(argv[i+1]);
     }
