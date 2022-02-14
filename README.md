@@ -1,5 +1,5 @@
-# srflp-dd
-A Decision-Diagram-based approach to solve the Single Row Facility Layout Problem (SRFLP).
+# csrflp-dd
+A Decision-Diagram-based approach to solve the Constrained Single Row Facility Layout Problem (cSRFLP).
 
 * `srflp_classic.cpp` performs a best-first branch-and-bound.
 * `srflp_boosted.cpp` performs a breadth-first branch-and-bound and uses a symmetry-breaking technique (turned off by default because not valid with constraints).
@@ -31,4 +31,4 @@ Usage: ./srflp_boosted filename [--width width]          // maximum width of the
 
 ## Data
 
-The `data` folder contains benchmark instances for the SRFLP, the Single Row Equidistant Facility Layout Problem (SREFLP) and the Minimum Linear Arrangement Problem (MinLA). The latter ones are special cases of the SRFLP.
+The `data` folder contains benchmark instances for the Single-Row Facility Layout Problem (SRFLP), the Single Row Equidistant Facility Layout Problem (SREFLP) and the Minimum Linear Arrangement Problem (MinLA). The latter ones are special cases of the SRFLP. It also contains constraint files to transform any instance in an instance of the cSRFLP.
